@@ -1,0 +1,43 @@
+image: debian:latest
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+stages:
+  - cppcheck
+  - build
+  - autotest
+
+cppcheck:
+  stage: cppcheck
+  script:
+    - apt-get update
+    - apt-get install -y cppcheck
+    - cppcheck ./cli
+    - cppcheck ./srv
+    - cppcheck ./common
+
+build:
+  stage: build
+  script:
+    - apt-get update
+    - apt-get install -y make gcc build-essential cargo pip git pkg-config
+    - pip install meson ninja --break-system-packages
+    - make all
+  artifacts:
+    paths:
+      - "build/"
+
+autotest:
+  stage: autotest
+  script:
+    - apt-get update
+    - apt-get install -y make gcc build-essential cargo pip git pkg-config
+    - pip install meson ninja --break-system-packages
+    - mkdir ./autotest/logs
+    - make test
+    - make clean
+    - make csp-test
+  artifacts:
+    paths:
+      - "./autotest/logs/"

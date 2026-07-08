@@ -1,0 +1,8 @@
+{
+  "dest_src": "src",
+  "dest_inc": "include",
+  "modules": [
+    "."
+  ],
+  "variables": { }
+}

@@ -1,0 +1,18 @@
+# build output directory
+build/
+
+# VScode stuff
+.vscode/
+
+# socat-emulated tty ports
+dev/
+
+# logging output
+autotest/logs/*
+
+# Meson subproject folders (skips .wrap files)
+subprojects/*/
+
+# generated meson file
+meson.build
+

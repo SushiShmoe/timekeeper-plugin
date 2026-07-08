@@ -1,0 +1,74 @@
+/// TK set time request
++to TK_NODE:TK_PORT
+struct TK_SET_TIME_REQ {
+  +named CMD_ID
+  u8 =0x00
+  u64 time
+}
+
+/// TK set time response
++from TK_NODE:TK_PORT
+struct TK_SET_TIME_RSP {
+  +named CMD_ID
+  u8 =0x00
+  u8 ret_val
+}
+
+/// TK get time request
++to TK_NODE:TK_PORT
+struct TK_GET_TIME_REQ {
+  +named CMD_ID
+  u8 =0x01
+}
+
+/// TK get time response
++from TK_NODE:TK_PORT
+struct TK_GET_TIME_RSP {
+  +named CMD_ID
+  u8 =0x01
+  u64 time
+}
+
+/// TK sync time request
++to TK_NODE:TK_PORT
+struct TK_SYNC_TIME_REQ {
+  +named CMD_ID
+  u8 =0x02
+  i64 frequency
+  u8 flags
+}
+
+/// TK sync time response
++from TK_NODE:TK_PORT
+struct TK_SYNC_TIME_RSP {
+  +named CMD_ID
+  u8 =0x02
+
+  // status response 
+  u8 error
+  u64 last_sync
+  u8 mode
+  u8 master_node
+  u8 last_failed_node
+
+  u8 ret_val
+}
+
+
+
+/// TK sync time request
++to TK_NODE:TK_PORT
+struct TK_SYNC_SLAVES_REQ {
+  +named CMD_ID
+  u8 =0x03
+  u8 node
+  u64 time
+}
+
+/// TK sync time response
++from TK_NODE:TK_PORT
+struct TK_SYNC_SLAVES_RSP {
+  +named CMD_ID
+  u8 =0x03
+  u8 ret_val
+}

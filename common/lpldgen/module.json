@@ -1,0 +1,9 @@
+{
+  "name": "TK_plugin",
+  "id_range": [ 1, 10 ],
+  "specs": [ "cmds.txt" ],
+  "variables": { 
+    "TK_NODE":13,
+    "TK_PORT": 10
+  }
+}

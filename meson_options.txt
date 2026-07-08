@@ -1,0 +1,15 @@
+# component configuration options
+# these are necessary to select the basic properties like CSP support or the build type
+option('enable_csp', type : 'boolean', value : false, description : 'Enable CSP support')
+option('enable_lpldgen', type : 'boolean', value : false, description : 'Enable lpldgen support')
+option('build_platform', type : 'string', value : 'Linux', description : 'Which platform to build for')
+option('build_class', type : 'combo', choices : ['client', 'server', 'combined'], value : 'combined', description : 'Build class')
+option('build_autotest', type : 'boolean', value : true, description : 'Enable building autotest on the selected platform')
+option('build_cmdline', type : 'combo', choices : ['none', 'static', 'plugin'], value : 'none', description : 'Enable building commandline commands on the selected platform')
+option('install_lib', type : 'boolean', value : false, description : 'Install the client/server library')
+option('static_libpath', type : 'string', value : '', description : 'Path to static dependencies')
+option('static_incpath', type : 'string', value : '', description : 'Path to headers if using static dependencies')
+option('pld_path', type : 'string', value : '', description : 'Path to pre-build lpldgen library headers (payloads.h etc.)')
+
+# possible additional user options
+option('template_option', type : 'boolean', value : false, description : 'This is an example user option')

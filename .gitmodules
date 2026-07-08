@@ -1,0 +1,6 @@
+[submodule "lib/sally-backends"]
+	path = lib/sally-backends
+	url = https://gitlab.com/vzlu/sw/sally-backends.git
+[submodule "tools"]
+	path = tools
+	url = https://gitlab.com/vzlu/sw/component-build.git

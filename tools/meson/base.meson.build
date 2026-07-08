@@ -1,0 +1,235 @@
+# get the git revision
+gitrev = 'unknown'
+res = run_command(['git', 'describe', '--always', '--dirty', '--abbrev=7', '--exclude=*'], capture : true, check : false)
+if res.returncode() != 0
+  warning('Failed to parse git revision, most likely not running in git repository!')
+else
+  gitrev = res.stdout()
+endif
+
+add_project_arguments(
+  '-DVERSION="@0@"'.format(meson.project_version()),
+  '-DGITREV="@0@"'.format(gitrev.strip()),
+  language : 'c',
+)
+
+cc = meson.get_compiler('c')
+
+# some configuration can be inferred
+if not dep_options.has_key('srv-abs')
+  dep_options += { 'srv-abs' : [] }
+endif
+dep_options += {'srv-abs' : dep_options['srv-abs'] + ['enable_csp=@0@'.format(get_option('enable_csp'))] } 
+
+# CSP may or may not be needed
+if get_option('enable_csp')
+  if get_option('static_libpath') == ''
+    component_deps += dependency('csp', default_options : dep_options.get('csp', []))
+  else
+    component_deps += cc.find_library('csp', dirs : get_option('static_libpath'))
+  endif
+endif
+
+# SALLY is always needed
+if get_option('static_libpath') == ''
+  component_deps += dependency('srv-abs', default_options : dep_options.get('srv-abs', []))
+else
+  component_deps += cc.find_library('srv-abs', dirs : get_option('static_libpath'))
+endif
+
+# console and commands libraries are optional
+if get_option('build_cmdline') != 'none'
+  if get_option('static_libpath') == ''
+    component_deps += dependency('console')
+    component_deps += dependency('commands')
+  else
+    component_deps += cc.find_library('console', dirs : get_option('static_libpath'))
+    component_deps += cc.find_library('commands', dirs : get_option('static_libpath'))
+  endif
+endif
+
+# check build class
+if class != 'client' and class != 'server' and class != 'combined'
+  warning('Unknown build class: "' + class + '", build will likely fail!')
+endif
+
+# set paths to the different build classes
+# since meson doesn't allow globbing, there are several variables to keep track of source files:
+# - client_lib_src: sources for the client library
+# - client_bin_src: sources for the client autotest binary
+# - server_lib_src: sources for the server library
+# - server_bin_src: sources for the server autotest binary
+# - client_cmd_src: sources for the client commands
+# - combined_bin_src: sources for the combined autotest binary
+
+inc_dirs = ['common/include']
+inc_dirs += extra_inc_dirs
+lib_src = backend_src + common_src
+bin_src = backend_src + common_src
+lib_name = project_name
+if class == 'client'
+  inc_dirs += 'cli/include'
+  lib_src += client_lib_src
+  if get_option('build_cmdline') != 'none'
+    lib_src += client_cmd_src
+  endif
+
+  lib_name += '-cli'
+  if get_option('build_autotest')
+    bin_src += client_bin_src
+  endif
+
+elif class == 'server'
+  inc_dirs += 'srv/include'
+  lib_src += server_lib_src
+  lib_name += '-srv'
+  if get_option('build_autotest')
+    bin_src += server_bin_src
+  endif
+
+elif class == 'combined'
+  inc_dirs += 'cli/include'
+  inc_dirs += 'srv/include'
+  bin_src += combined_bin_src
+
+endif
+
+# if some static libraries are used, add their headers to includes
+if get_option('static_incpath') != ''
+  inc_dirs += get_option('static_incpath')
+endif
+
+# configure lpldgen if it is used
+if get_option('enable_lpldgen')
+  # if pld_path is set, then we're using pre-built lpldgen
+  if get_option('pld_path') != ''
+    lpldgen = find_program('lpldgen', native : true)
+  else
+    pld = dependency('pld')
+    component_deps += pld
+
+    if get_option('build_cmdline') != 'none'
+      component_deps += dependency('commands')
+    endif
+
+    lpldgen = find_program(pld.get_variable('lpldgen'), native : true)
+  endif
+
+  # disable unused label warning, lpldgen creates a lot of them
+  # it's not a big problem but it can really clutter the build output
+  add_project_arguments('-Wno-unused-label', language: 'c')
+
+  pld_src = custom_target(
+    'pld_' + project_name,
+    input : 'common/lpldgen/config.json',
+    output : ['pld_' + project_name + '.h', 'pld_' + project_name + '.c'],
+    depend_files : ['common/lpldgen/module.json', 'common/lpldgen/cmds.txt'],
+    command : [lpldgen, '--config', '@INPUT@', '--output-inc', '@OUTPUT0@', '--output-src', '@OUTPUT1@'],
+  )
+
+  lib_src += pld_src
+  bin_src += pld_src
+  common_src += pld_src
+  inc_dirs += 'common/lpldgen/include'
+endif
+
+# set name for the static library and autotest executable
+if get_option('build_autotest')
+  autotest_exe = project_name + '-bin'
+endif
+
+# install the project-specific configuration
+if common_config_path != ''
+  subdir(common_config_path)
+  install_subdir(common_config_path, install_dir : get_option('includedir'), exclude_files : 'meson.build')
+endif
+
+# add both targets
+if class == 'client' or class == 'server'
+  # non-combined build, prepare the library
+  if get_option('default_library') == 'shared' or get_option('build_cmdline') == 'plugin'
+    backend_defs += '-DSHARED_BUILD'
+  endif
+
+  if get_option('build_cmdline') == 'plugin'
+    # when building as plugin, we need to enfore shared library
+    # because default_library will be set to static
+    lib = shared_library(
+            lib_name,
+            lib_src, 
+            dependencies: component_deps,
+            include_directories: inc_dirs,
+            c_args: backend_defs
+          )
+
+  else
+    lib = library(
+            lib_name,
+            lib_src, 
+            dependencies: component_deps,
+            include_directories: inc_dirs,
+            c_args: backend_defs,
+            install : get_option('install_lib')
+          )
+    if get_option('install_lib')
+      foreach dir : inc_dirs
+        install_subdir(dir, install_dir : get_option('includedir'), strip_directory: true, exclude_files : 'meson.build')
+      endforeach
+    endif
+    
+  endif
+
+  # if this is an autotest build, create the client/server executable as well
+  if get_option('build_autotest')
+    inc_dirs += 'lib/munit'
+    bin_src += files('lib/munit/munit.c')
+    exe = executable(lib_name + '-bin', bin_src,
+            dependencies: component_deps,
+            include_directories : inc_dirs,
+            c_args: backend_defs,
+            link_with: lib)
+  endif
+
+  # if the component is being built as statically linked library,
+  # it needs to be declared as a dependency
+  if get_option('default_library') == 'static'
+    lib_dep = declare_dependency(
+      include_directories : inc_dirs,
+      link_with : lib
+    )
+    meson.override_dependency(lib_name, lib_dep)
+
+    pkgconfig = import('pkgconfig')
+    pkgconfig.generate(lib)
+  endif
+
+else
+  # for combined build, we need server and client libs and combined executable
+  lib_cli = library(
+              project_name + '-cli',
+              client_lib_src + common_src, 
+              dependencies: component_deps,
+              include_directories: inc_dirs,
+              c_args: backend_defs
+            )
+  
+  lib_srv = library(
+              project_name + '-srv',
+              server_lib_src + common_src, 
+              dependencies: component_deps,
+              include_directories: inc_dirs,
+              c_args: backend_defs
+            )
+  
+  inc_dirs += 'lib/munit'
+  bin_src += files('lib/munit/munit.c')
+  exe = executable(
+          autotest_exe,
+          bin_src,
+          dependencies: component_deps,
+          include_directories : inc_dirs,
+          c_args: backend_defs,
+          link_with: [lib_cli, lib_srv]
+        )
+
+endif

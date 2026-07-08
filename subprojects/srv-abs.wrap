@@ -1,0 +1,4 @@
+[wrap-git]
+url = https://gitlab.com/vzlu/sw/sally.git
+revision = main
+depth = 1
