@@ -87,11 +87,6 @@ elif class == 'server'
     bin_src += server_bin_src
   endif
 
-elif class == 'combined'
-  inc_dirs += 'cli/include'
-  inc_dirs += 'srv/include'
-  bin_src += combined_bin_src
-
 endif
 
 # if some static libraries are used, add their headers to includes
@@ -220,16 +215,5 @@ else
               include_directories: inc_dirs,
               c_args: backend_defs
             )
-  
-  inc_dirs += 'lib/munit'
-  bin_src += files('lib/munit/munit.c')
-  exe = executable(
-          autotest_exe,
-          bin_src,
-          dependencies: component_deps,
-          include_directories : inc_dirs,
-          c_args: backend_defs,
-          link_with: [lib_cli, lib_srv]
-        )
 
 endif

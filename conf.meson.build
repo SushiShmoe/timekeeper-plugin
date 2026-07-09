@@ -1,12 +1,12 @@
 # (0) choose an appropriate name for the component
-project('timekeeper-plugin', 'c', 
-  version : '0.2.0.0',
+project('timekeeper', 'c', 
+  version : '0.2.0.1',
   meson_version : '>=0.61.2',
   default_options : [
     'default_library=shared',
     'optimization=s',
     'debug=false'])
-project_name = 'comp-templ'
+project_name = 'timekeeper'
 
 # get the basic build properties
 platform = get_option('build_platform')
@@ -58,13 +58,9 @@ endif
 # (3) explicitly set the sources
 # NOTE: this example combines CSP and COM-port communication, so decide which one will be used
 # in real life, only one of these options will typically be needed
-if get_option('enable_csp')
-  client_lib_src = files('cli/src/client_tk.c')
-  server_lib_src = files('srv/src/server_tk.c')
-else
-  client_lib_src = files('cli/src/client_com.c')
-  server_lib_src = files('srv/src/server_com.c')
-endif
+
+client_lib_src = files('cli/src/client_tk.c') 
+server_lib_src = files('srv/src/server_tk.c')
 
 # (3.1) add sources common to both client and server
 # NOTE: if lpldgen is used, do not add it here, as it is handled automatically!
@@ -81,10 +77,6 @@ if get_option('build_autotest')
     client_bin_src = files('autotest/cli/client_csp.c')
     server_bin_src = files('autotest/srv/server_csp.c')
     combined_bin_src = files('autotest/comb/combined_csp.c')
-  else
-    client_bin_src = files('autotest/cli/client_com.c')
-    server_bin_src = files('autotest/srv/server_com.c')
-    combined_bin_src = files('autotest/comb/combined_com.c')
   endif
 endif
 
