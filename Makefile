@@ -14,8 +14,8 @@ all:
 # to run the example, run scripts/serial_loopback.sh in background,
 # launch the server binary build/server-Linux/comp-templ-srv-bin in background,
 # and then run build/server-Linux/comp-templ-cli-bin
-	./scripts/build.sh server Linux
-	./scripts/build.sh client Linux
+	./scripts/build.sh server Linux -Denable_csp=true -Denable_lpldgen=true -Dbuild_autotest=false -Dbuild_cmdline=plugin
+	./scripts/build.sh client Linux -Denable_csp=true -Denable_lpldgen=true -Dbuild_autotest=false -Dbuild_cmdline=plugin
 
 csp:
 # this target builds server and client but using CSP communication instead of a plain COM port

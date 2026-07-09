@@ -25,5 +25,5 @@ mkdir -p $BUILD_PATH
 ./tools/meson/mgen.sh > $PWD/meson.build
 
 # run meson and then build with ninja
-meson setup -Dbuild_platform=$PLATFORM -Dbuild_class=$CLASS $BUILD_FLAGS $BUILD_PATH
+meson setup --prefix "/opt/vzlu" --libdir lib --pkg-config-path "/opt/vzlu/lib/pkgconfig" -Dbuild_platform=$PLATFORM -Dbuild_class=$CLASS $BUILD_FLAGS $BUILD_PATH
 cd $BUILD_PATH && ninja

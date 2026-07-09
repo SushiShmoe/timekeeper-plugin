@@ -77,17 +77,11 @@ if class == 'client'
   endif
 
   lib_name += '-cli'
-  if get_option('build_autotest')
-    bin_src += client_bin_src
-  endif
 
 elif class == 'server'
   inc_dirs += 'srv/include'
   lib_src += server_lib_src
   lib_name += '-srv'
-  if get_option('build_autotest')
-    bin_src += server_bin_src
-  endif
 
 endif
 
@@ -130,11 +124,6 @@ if get_option('enable_lpldgen')
   inc_dirs += 'common/lpldgen/include'
 endif
 
-# set name for the static library and autotest executable
-if get_option('build_autotest')
-  autotest_exe = project_name + '-bin'
-endif
-
 # install the project-specific configuration
 if common_config_path != ''
   subdir(common_config_path)
@@ -156,7 +145,8 @@ if class == 'client' or class == 'server'
             lib_src, 
             dependencies: component_deps,
             include_directories: inc_dirs,
-            c_args: backend_defs
+            c_args: backend_defs,
+            override_options : ['b_lundef=false']
           )
 
   else
