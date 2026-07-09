@@ -64,6 +64,8 @@ endif
 
 inc_dirs = ['common/include']
 inc_dirs += extra_inc_dirs
+inc_dirs += 'cli/include'
+inc_dirs += 'srv/include'
 lib_src = backend_src + common_src
 bin_src = backend_src + common_src
 lib_name = project_name

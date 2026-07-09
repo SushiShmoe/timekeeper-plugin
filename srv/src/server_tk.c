@@ -1,17 +1,17 @@
 // app headers
-#include "timekeeper/timekeeper_server.h"
+#include "timekeeper/server_tk.h"
 
 // standard libraries
 #include <string.h>
 
 // SALLY libraries
-#include <service_err_codes.h>
-#include <csp_pld_txn.h>
+#include <service/service_err_codes.h>
+#include <service-csp/csp_pld_txn.h>
 
 // lpldgen-generated packet descriptions
 #include <pld_tk_plugin.h>
 
-#include "app_timekeeper.h"
+#include "svc_tk.h" // fix import on integration
 
 // forward declarations of functions that we will use to do the actual stuff
 static int8_t tk_set_time(void* vreq, void* vrpl);
