@@ -7,7 +7,7 @@
 #ifndef PLD_TK_PLUGIN_H
 #define PLD_TK_PLUGIN_H
 
-#include <payloads.h>
+#include "payloads.h"
 
 extern const struct pld_module Payloads_TK_plugin;
 
